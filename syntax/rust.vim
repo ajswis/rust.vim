@@ -186,23 +186,12 @@ syn match rustShebang /\%^#![^[].*/
 syn region rustCommentLine                                                  start="//"                      end="$"   contains=rustTodo,@Spell
 syn region rustCommentLineDoc                                               start="//\%(//\@!\|!\)"         end="$"   contains=rustTodo,@Spell
 syn region rustCommentLineDocError                                          start="//\%(//\@!\|!\)"         end="$"   contains=rustTodo,@Spell contained
-syn region rustCommentBlock             matchgroup=rustCommentBlock         start="/\*\%(!\|\*[*/]\@!\)\@!" end="\*/" contains=rustTodo,rustCommentBlockNest,@Spell
-syn region rustCommentBlockDoc          matchgroup=rustCommentBlockDoc      start="/\*\%(!\|\*[*/]\@!\)"    end="\*/" contains=rustTodo,rustCommentBlockDocNest,@Spell
-syn region rustCommentBlockDocError     matchgroup=rustCommentBlockDocError start="/\*\%(!\|\*[*/]\@!\)"    end="\*/" contains=rustTodo,rustCommentBlockDocNestError,@Spell contained
-syn region rustCommentBlockNest         matchgroup=rustCommentBlock         start="/\*"                     end="\*/" contains=rustTodo,rustCommentBlockNest,@Spell contained transparent
-syn region rustCommentBlockDocNest      matchgroup=rustCommentBlockDoc      start="/\*"                     end="\*/" contains=rustTodo,rustCommentBlockDocNest,@Spell contained transparent
-syn region rustCommentBlockDocNestError matchgroup=rustCommentBlockDocError start="/\*"                     end="\*/" contains=rustTodo,rustCommentBlockDocNestError,@Spell contained transparent
-" FIXME: this is a really ugly and not fully correct implementation. Most
-" importantly, a case like ``/* */*`` should have the final ``*`` not being in
-" a comment, but in practice at present it leaves comments open two levels
-" deep. But as long as you stay away from that particular case, I *believe*
-" the highlighting is correct. Due to the way Vim's syntax engine works
-" (greedy for start matches, unlike Rust's tokeniser which is searching for
-" the earliest-starting match, start or end), I believe this cannot be solved.
-" Oh you who would fix it, don't bother with things like duplicating the Block
-" rules and putting ``\*\@<!`` at the start of them; it makes it worse, as
-" then you must deal with cases like ``/*/**/*/``. And don't try making it
-" worse with ``\%(/\@<!\*\)\@<!``, either...
+
+" Define documentation block comments first, then regular block comments second.
+" This keeps precedence for regular block highlighting with /* and /**/, and /***/
+syn region rustCommentBlockDoc          matchgroup=rustCommentBlockDoc      start="\(/\@<!\*\)\@<!/\*[*!]"                     end="\*/" contains=rustTodo,rustCommentBlock,rustCommentBlockDoc,@Spell
+syn region rustCommentBlockDocError     matchgroup=rustCommentBlockDocError start="\(/\@<!\*\)\@<!/\*[*!]"                     end="\*/" contains=rustTodo,rustCommentBlockDocError,@Spell contained
+syn region rustCommentBlock             matchgroup=rustCommentBlock         start="\(/\@<!\*\)\@<!/\*\(!\|\*\(\**/\)\@!\)\@!"  end="\*/" contains=rustTodo,rustCommentBlock,rustCommentBlockDoc,@Spell skipwhite
 
 syn keyword rustTodo contained TODO FIXME XXX NB NOTE
 
